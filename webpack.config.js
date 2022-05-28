@@ -3,6 +3,8 @@ const webpack = require("webpack");
 const MyPlugin = require("./myplugin");
 const banner = require("./banner.js")
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
 module.exports = {
     mode: "development",
@@ -28,7 +30,12 @@ module.exports = {
             },
         },{
             test: /\.css$/,
-            use: ['css-loader']
+            use: [
+                process.env.NODE_ENV === "production"
+                    ? MiniCssExtractPlugin.loader // 프로덕션 환경
+                    : "style-loader", // 개발 환경
+                "css-loader",
+            ],
         },{
             test: /\.txt$/,
             use: "raw-loader",
@@ -59,7 +66,10 @@ module.exports = {
                 env: process.env.NODE_ENV === 'development' ? '(개발용)' : '',
             },
             hash: true, // 정적 파일을 불러올때 쿼리문자열에 웹팩 해쉬값을 추가한다
-        })
+        }),
+        new CleanWebpackPlugin(),
+        ...(process.env.NODE_ENV === "production"
+            ? [new MiniCssExtractPlugin({ filename: `[name].css` })] : []),
     ]
 }
 
